@@ -3,43 +3,46 @@ using System.Collections;
 
 public class CharacterMovement : MonoBehaviour {
 	public float turn;
-	public Rigidbody rb;
+	public Rigidbody rigidbody;
 	public Collider col;
-	private float speedMultiplier = 1;
-	private float maxSpeed = 10f;
 	public bool isGrounded;
-	private float jumpHeight = 40000;
+	private float jumpHeight = 1.0f;
+	public float speed = 10f;
+	public float maxVelocityChange = 10.0f;
 	// Use this for initialization
 	void Start () {
-		rb = GetComponent<Rigidbody> ();
+		rigidbody = GetComponent<Rigidbody> ();
 		col = GetComponent<CapsuleCollider> ();
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		float side = Input.GetAxis ("Horizontal");
-		float front = Input.GetAxis ("Vertical");
-		if ((front > 0 || front < 0) && Mathf.Abs (rb.velocity.z) < maxSpeed) {
-			rb.velocity = new Vector3(rb.velocity.x, rb.velocity.y, rb.velocity.z + front) * speedMultiplier;
-		} else {
-			if (Mathf.Floor(rb.velocity.z) != 0){
-				rb.velocity = new Vector3(rb.velocity.x, rb.velocity.y, rb.velocity.z / 2);
-			}
-		}
-		if ((side < 0 || side > 0) && Mathf.Abs(rb.velocity.x) < maxSpeed) {
-			rb.velocity = new Vector3(rb.velocity.x + side, rb.velocity.y, rb.velocity.z) * speedMultiplier;
-		}else {
-			if (Mathf.Floor(rb.velocity.x) != 0){
-				rb.velocity = new Vector3(rb.velocity.x / 2, rb.velocity.y, rb.velocity.z);
-			}
-		}
+		turn = Input.GetAxis ("Mouse X");
+		// Calculate how fast we should be moving
+		Vector3 targetVelocity = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
+		targetVelocity = transform.TransformDirection(targetVelocity);
+		targetVelocity *= speed;
+		
+		// Apply a force that attempts to reach our target velocity
+		Vector3 velocity = rigidbody.velocity;
+		Vector3 velocityChange = (targetVelocity - velocity);
+		velocityChange.x = Mathf.Clamp(velocityChange.x, -maxVelocityChange, maxVelocityChange);
+		velocityChange.z = Mathf.Clamp(velocityChange.z, -maxVelocityChange, maxVelocityChange);
+		velocityChange.y = 0;
+		rigidbody.AddForce( (isGrounded) ? (velocityChange):(velocityChange / 10), ForceMode.VelocityChange);
+
 		if (Input.GetButton ("Jump") && isGrounded) {
-			rb.AddForce(Vector3.up * jumpHeight);
+			rigidbody.velocity = new Vector3 (velocity.x, Mathf.Sqrt(2 * jumpHeight * 9.81f), velocity.z);
 			isGrounded = false;
 		}
+
+		if (turn != 0){
+			transform.Rotate(0, turn * Settings.mouseSensitivity, 0);
+		}
+		rigidbody.AddForce (new Vector3 (0f, -9.81f * rigidbody.mass, 0f));
 	}
 
-	void OnCollisionEnter(Collision col){
+	void OnCollisionStay(Collision col){
 		if (col.gameObject.tag.Equals ("Ground")) {
 			isGrounded = true;
 		}

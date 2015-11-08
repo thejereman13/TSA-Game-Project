@@ -6,5 +6,6 @@ public class Settings : MonoBehaviour {
 
 	public static float overallVolume;
 	public static float musicVolume;
+	public static float mouseSensitivity = 2;
 
 }
