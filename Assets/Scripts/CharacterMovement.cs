@@ -40,6 +40,8 @@ public class CharacterMovement : MonoBehaviour {
 	}
 
 	void OnCollisionEnter(Collision col){
-		isGrounded = true;
+		if (col.gameObject.tag.Equals ("Ground")) {
+			isGrounded = true;
+		}
 	}
 }
