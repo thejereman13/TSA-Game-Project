@@ -6,9 +6,10 @@ public class CharacterMovement : MonoBehaviour {
 	public Rigidbody rigidbody;
 	public Collider col;
 	public bool isGrounded;
-	private float jumpHeight = 1.0f;
+	private float jumpHeight = 20000.0f;
 	public float speed = 10f;
-	public float maxVelocityChange = 10.0f;
+	public float maxVelocityChange = 8.0f;
+	public int jumpTimer = 80;
 	// Use this for initialization
 	void Start () {
 		rigidbody = GetComponent<Rigidbody> ();
@@ -19,27 +20,24 @@ public class CharacterMovement : MonoBehaviour {
 	void Update () {
 		turn = Input.GetAxis ("Mouse X");
 		// Calculate how fast we should be moving
-		Vector3 targetVelocity = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
+		Vector3 targetVelocity = new Vector3(Input.GetAxis("Horizontal") * speed, rigidbody.velocity.y, Input.GetAxis("Vertical") * speed);
 		targetVelocity = transform.TransformDirection(targetVelocity);
-		targetVelocity *= speed;
-		
-		// Apply a force that attempts to reach our target velocity
-		Vector3 velocity = rigidbody.velocity;
-		Vector3 velocityChange = (targetVelocity - velocity);
-		velocityChange.x = Mathf.Clamp(velocityChange.x, -maxVelocityChange, maxVelocityChange);
-		velocityChange.z = Mathf.Clamp(velocityChange.z, -maxVelocityChange, maxVelocityChange);
-		velocityChange.y = 0;
-		rigidbody.AddForce( (isGrounded) ? (velocityChange):(velocityChange / 10), ForceMode.VelocityChange);
+		rigidbody.velocity = targetVelocity;
+		//Add code to reduce velocity (divide by two with mathf.floor stuff)
 
-		if (Input.GetButton ("Jump") && isGrounded) {
-			rigidbody.velocity = new Vector3 (velocity.x, Mathf.Sqrt(2 * jumpHeight * 9.81f), velocity.z);
+		if (Input.GetButton ("Jump") && isGrounded && jumpTimer == 80) {
+			rigidbody.AddForce(Vector3.up * 2 * jumpHeight);
 			isGrounded = false;
+			jumpTimer = 0;
 		}
 
 		if (turn != 0){
 			transform.Rotate(0, turn * Settings.mouseSensitivity, 0);
 		}
-		rigidbody.AddForce (new Vector3 (0f, -9.81f * rigidbody.mass, 0f));
+		if (jumpTimer != 80) {
+			jumpTimer= jumpTimer + 2;
+		}
+		//rigidbody.AddForce (new Vector3 (0f, -9.81f * rigidbody.mass, 0f));
 	}
 
 	void OnCollisionStay(Collision col){
