@@ -17,15 +17,24 @@ public class CharacterMovement : MonoBehaviour {
 	}
 	
 	// Update is called once per frame
-	void Update () {
+	void FixedUpdate () {
 		turn = Input.GetAxis ("Mouse X");
-		// Calculate how fast we should be moving
 		Vector3 targetVelocity = new Vector3(Input.GetAxis("Horizontal") * speed, rigidbody.velocity.y, Input.GetAxis("Vertical") * speed);
 		targetVelocity = transform.TransformDirection(targetVelocity);
-		rigidbody.velocity = targetVelocity;
+		Vector3 tempVel = new Vector3 (rigidbody.velocity.x, 0, rigidbody.velocity.z);
+		float distance = tempVel.magnitude * Time.fixedDeltaTime;
+		tempVel.Normalize ();
+		RaycastHit hit;
+		if (!rigidbody.SweepTest (tempVel, out hit, distance)) {
+			rigidbody.velocity = targetVelocity;
+		} else {
+			Debug.Log("Collision");
+			rigidbody.velocity = new Vector3 (0, rigidbody.velocity.y, 0);
+			isGrounded = false;
+		}
 		if ((Mathf.Floor (rigidbody.velocity.x) != 0 || Mathf.Floor (rigidbody.velocity.z) != 0) && isGrounded == false) {
 			rigidbody.velocity = new Vector3 (rigidbody.velocity.x / 2, rigidbody.velocity.y, rigidbody.velocity.z / 2);
-			rigidbody.AddForce (-targetVelocity / 4);
+			rigidbody.AddForce (new Vector3 (-targetVelocity.x, targetVelocity.y, -targetVelocity.z) / 4);
 		}
 
 		if (Input.GetButton ("Jump") && isGrounded && jumpTimer == 80) {

@@ -17,9 +17,9 @@ public class Fan : MonoBehaviour {
 				Debug.Log(hit.rigidbody.name);
 			}
 			if (hit.rigidbody.velocity.y < -0.5f){
-				hit.rigidbody.AddForce(new Vector3(0, 0.5f, 0), ForceMode.VelocityChange);
+				hit.rigidbody.AddForce(new Vector3(0, 1f, 0), ForceMode.VelocityChange);
 			}else{
-				hit.rigidbody.AddForce(new Vector3(0, .4f, 0), ForceMode.VelocityChange);
+				hit.rigidbody.AddForce(new Vector3(0, .5f, 0), ForceMode.VelocityChange);
 			}
 		}
 	}
